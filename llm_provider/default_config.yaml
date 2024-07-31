@@ -1,0 +1,23 @@
+chrome:
+  use_undetected: true
+  load_profile: true
+  user_data_dir: ""  # If empty, will use default
+  profile_directory: "Default"  # Default value, can be customized
+
+firefox:
+  load_profile: true
+  user_data_dir: ""  # If empty, will use default
+  profile_directory: "Default"  # Default value, can be customized
+
+edge:
+  load_profile: true
+  user_data_dir: ""  # If empty, will use default
+  profile_directory: "Default"  # Default value, can be customized
+
+chatgpt:
+  url: "https://chatgpt.com/"
+  input_xpath: "//textarea[@id='prompt-textarea']"
+  send_button_xpath: "//button[@data-testid='send-button']"
+  response_xpath: "//div[contains(@class, 'markdown')]"
+  chat_list_xpath: "//div[@data-testid='conversation-turn']"
+  model_selector_xpath: "//select[@data-testid='model-selector']"
