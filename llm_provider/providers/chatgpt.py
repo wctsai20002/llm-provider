@@ -1,4 +1,7 @@
+import re
 import time
+from urllib.parse import urljoin
+from typing import Dict, Any, List
 from ..base import BaseLLMProvider
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -38,17 +41,52 @@ class ChatGPTProvider(BaseLLMProvider):
         return [response.text for response in responses]
 
     def list_chats(self) -> list:
-        chat_elements = self.browser.driver.find_elements(By.XPATH, self.config['chat_list_xpath'])
-        chat_elements = self._find_elements(By.XPATH, self.config['chat_list_xpath'])
-        return [chat.text for chat in chat_elements]
+        chats = []
+        sidebar = self._find_element(self.config['sidebar_xpath'])
+        self.browser.driver.execute_script("arguments[0].scrollTop = 0;", sidebar)
+        time.sleep(0.3)
+
+        while True:
+            self.browser.driver.execute_script("arguments[0].scrollTop += arguments[1];", sidebar, 1000)
+            time.sleep(0.5)
+            scroll_height = self.browser.driver.execute_script("return arguments[0].scrollHeight;", sidebar)
+            client_height = self.browser.driver.execute_script("return arguments[0].clientHeight;", sidebar)
+            scroll_position = self.browser.driver.execute_script("return arguments[0].scrollTop;", sidebar)
+            
+            if abs((scroll_height - client_height) - scroll_position) <= 5:
+                break
+        
+        chats_element = self._find_element(self.config['sidebar_xpath'])
+        li_elements = chats_element.find_elements(By.TAG_NAME, 'li')
+        for li in li_elements:
+            a_element = li.find_element(By.TAG_NAME, 'a')
+            url = a_element.get_attribute('href') if a_element else None
+            title = li.text
+
+            pattern = r"/c/([^/]+)$"
+            match = re.search(pattern, url)
+
+            if match:
+                chat_id = match.group(1)
+                chats.append({
+                    'title' : title, 
+                    'url' : url, 
+                    'chat_id' : chat_id
+                })
+        
+        return chats
 
     def select_chat(self, chat_id: str) -> None:
-        chat_xpath = f"{self.config['chat_list_xpath']}[contains(@data-id, '{chat_id}')]"
-        self._click_element(chat_xpath)
+        chat_url = urljoin(self.config['chat_base_url'], chat_id)
+        self.browser.driver.get(chat_url)
+
+    def get_current_model(self) -> str:
+        model_element = self._find_element(self.config['model_xpath'])
+        return model_element.text
 
     def select_model(self, model_name: str) -> None:
-        selector = self._find_element(self.config['model_selector_xpath'])
-        selector.click()
+        model_selector = self._find_element(self.config['model_xpath'])
+        model_selector.click()
         model_option = self._find_element(f"//option[text()='{model_name}']")
         model_option.click()
     

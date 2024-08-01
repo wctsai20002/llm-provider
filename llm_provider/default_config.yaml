@@ -16,10 +16,15 @@ edge:
 
 chatgpt:
   url: "https://chatgpt.com/"
+  chat_base_url: "https://chatgpt.com/c/"
+  support_models: [""]
   input_xpath: "//textarea[@id='prompt-textarea']"
   send_button_xpath: "//button[@data-testid='send-button']"
   stop_button_xpath: "//button[@data-testid='stop-button']"
   prompt_xpath: "//div[@data-message-author-role='user']"
   response_xpath: "//div[@data-message-author-role='assistant']"
   chat_list_xpath: "//div[@data-testid='conversation-turn']"
-  model_selector_xpath: "//select[@data-testid='model-selector']"
+  model_xpath: "//div[@aria-haspopup='menu' and contains(@id, 'radix-')]"
+  models_menu_xpath: "//div[@data-side='bottom' and @data-align='start' and @role='menu' and @aria-orientation='vertical' and @data-state='open']"
+  menu_items_relative_xpath: ".//div[@role='menuitem']"
+  sidebar_xpath: "//*[@id='__next']/div/div[1]/div/div/div/div/nav/div[2]"

@@ -35,12 +35,25 @@ class BaseLLMProvider(ABC):
         pass
 
     @abstractmethod
+    def get_current_model(self) -> str:
+        pass
+    
+    @abstractmethod
     def select_model(self, model_name: str) -> None:
         pass
 
     @abstractmethod
     def wait_for_response_completion(self, timeout: int = 300) -> None:
         pass
+
+    def _wait_presence(self, xpath: str, timeout: int = 3) -> bool:
+        try:
+            WebDriverWait(self.browser.driver, timeout).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            return True
+        except:
+            return False
 
     def _find_element(self, xpath: str, timeout: int = 10):
         return WebDriverWait(self.browser.driver, timeout).until(
