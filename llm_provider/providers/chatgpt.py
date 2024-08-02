@@ -42,7 +42,10 @@ class ChatGPTProvider(BaseLLMProvider):
 
     def list_chats(self) -> list:
         chats = []
-        sidebar = self._find_element(self.config['sidebar_xpath'])
+        try:
+            sidebar = self._find_element(self.config['sidebar_xpath'])
+        except:
+            return chats
         self.browser.driver.execute_script("arguments[0].scrollTop = 0;", sidebar)
         time.sleep(0.3)
 
@@ -105,14 +108,6 @@ class ChatGPTProvider(BaseLLMProvider):
                 time.sleep(0.3)
             return False
         return False
-    
-    def update_latest_response_id(self):
-        try:
-            response = self._find_element(self.config['response_xpath'])
-            if response:
-                self.latest_response_id = response.get_attribute("data-message-id")
-        except Exception as e:
-            pass
     
     def check_llm_response_status(self, timeout: int = 10) -> bool:
         start_time = time.time()
