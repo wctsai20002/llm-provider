@@ -122,3 +122,18 @@ class ChatGPTProvider(BaseLLMProvider):
                 pass
             time.sleep(1)
         return False
+    
+    def upload_file(self, path: str) -> bool:
+        try:
+            input_element = self._find_element(self.config['input_xpath'])
+            file_input = input_element.find_element(By.XPATH, "//input[@type='file']")
+
+            # browser.driver.execute_script("""
+            #     arguments[0].classList.remove('hidden');
+            #     arguments[0].style.display = 'block';
+            # """, file_input)
+
+            file_input.send_keys(path)
+            return True
+        except:
+            return False
