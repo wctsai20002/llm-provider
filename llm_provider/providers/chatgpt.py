@@ -1,3 +1,4 @@
+import os
 import re
 import time
 from urllib.parse import urljoin
@@ -44,7 +45,8 @@ class ChatGPTProvider(BaseLLMProvider):
         chats = []
         try:
             sidebar = self._find_element(self.config['sidebar_xpath'])
-        except:
+        except Exception as e:
+            print(e)
             return chats
         self.browser.driver.execute_script("arguments[0].scrollTop = 0;", sidebar)
         time.sleep(0.3)
@@ -109,6 +111,11 @@ class ChatGPTProvider(BaseLLMProvider):
             return False
         return False
     
+    def check_send_button_status(self, timeout=10):
+        button_element = self._find_element(self.config['send_button_xpath'], timeout)
+        is_disabled = button_element.get_attribute('disabled')
+        return not is_disabled
+
     def check_llm_response_status(self, timeout: int = 10) -> bool:
         start_time = time.time()
         while time.time() - start_time < timeout:
@@ -125,6 +132,7 @@ class ChatGPTProvider(BaseLLMProvider):
     
     def upload_file(self, path: str) -> bool:
         try:
+            path = os.path.abspath(os.path.expanduser(path))
             input_element = self._find_element(self.config['input_xpath'])
             file_input = input_element.find_element(By.XPATH, "//input[@type='file']")
 
@@ -132,8 +140,15 @@ class ChatGPTProvider(BaseLLMProvider):
             #     arguments[0].classList.remove('hidden');
             #     arguments[0].style.display = 'block';
             # """, file_input)
-
             file_input.send_keys(path)
             return True
         except:
             return False
+    
+    def wait_for_upload_completion(self, timeout: int = 600) -> bool:
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if self.check_send_button_status():
+                return True
+            time.sleep(1)
+        return False
