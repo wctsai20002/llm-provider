@@ -33,6 +33,7 @@ chatgpt:
 claude:
   url: "https://claude.ai/"
   chat_base_url: "https://claude.ai/chat/"
+  chat_list_url: "https://claude.ai/recents"
   support_models: [""]
   input_xpath: "//div[@aria-label='Write your prompt to Claude']//div[@contenteditable='true']"
   file_xpath: "//input[@type='file' and @data-testid='file-upload']"
