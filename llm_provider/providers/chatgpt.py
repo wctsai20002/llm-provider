@@ -67,8 +67,8 @@ class ChatGPTProvider(BaseLLMProvider):
             a_element = li.find_element(By.TAG_NAME, 'a')
             url = a_element.get_attribute('href') if a_element else None
             title = li.text
-
-            pattern = r"/c/([^/]+)$"
+            
+            pattern = rf"{self.config['chat_base_url']}([^/]+)$"
             match = re.search(pattern, url)
 
             if match:
