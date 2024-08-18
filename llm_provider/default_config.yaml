@@ -19,6 +19,7 @@ chatgpt:
   chat_base_url: "https://chatgpt.com/c/"
   support_models: [""]
   input_xpath: "//textarea[@id='prompt-textarea']"
+  file_xpath: "//input[@type='file']"
   send_button_xpath: "//button[@data-testid='send-button']"
   stop_button_xpath: "//button[@data-testid='stop-button']"
   prompt_xpath: "//div[@data-message-author-role='user']"
@@ -27,4 +28,18 @@ chatgpt:
   model_xpath: "//div[@aria-haspopup='menu' and contains(@id, 'radix-')]"
   models_menu_xpath: "//div[@data-side='bottom' and @data-align='start' and @role='menu' and @aria-orientation='vertical' and @data-state='open']"
   menu_items_relative_xpath: ".//div[@role='menuitem']"
-  sidebar_xpath: "//*[@id='__next']/div/div[1]/div/div/div/div/nav/div[2]"
+  sidebar_xpath: "//*[@id='__next']/div[1]/div[1]/div/div/div/nav/div[2]"
+
+claude:
+  url: "https://claude.ai/"
+  chat_base_url: "https://claude.ai/chat/"
+  support_models: [""]
+  input_xpath: "//div[@aria-label='Write your prompt to Claude']//div[@contenteditable='true']"
+  file_xpath: "//input[@type='file' and @data-testid='file-upload']"
+  send_button_xpath: "//button[@aria-label='Send Message']"
+  stop_button_xpath: "//button[@aria-label='Stop Response']"
+  prompt_xpath: "//div[contains(@class, 'font-user-message')]"
+  response_xpath: "//div[contains(@class, 'font-claude-message')]"
+  chat_list_xpath: "//li[contains(@class, 'relative group')]"
+  model_xpath: "//button[@data-testid='model-selector-dropdown']/div[1]/div[2]"
+  models_menu_xpath: "//button[@data-testid='model-selector-dropdown']"

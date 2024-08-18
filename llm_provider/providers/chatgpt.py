@@ -134,7 +134,7 @@ class ChatGPTProvider(BaseLLMProvider):
         try:
             path = os.path.abspath(os.path.expanduser(path))
             input_element = self._find_element(self.config['input_xpath'])
-            file_input = input_element.find_element(By.XPATH, "//input[@type='file']")
+            file_input = input_element.find_element(By.XPATH, self.config['file_xpath'])
 
             # browser.driver.execute_script("""
             #     arguments[0].classList.remove('hidden');
