@@ -49,8 +49,24 @@ claude:
   file_xpath: "//input[@type='file' and @data-testid='file-upload']"
   send_button_xpath: "//button[@aria-label='Send Message']"
   stop_button_xpath: "//button[@aria-label='Stop Response']"
+  file_button_xpath: "//button[@aria-label='Upload content']"
   prompt_xpath: "//div[contains(@class, 'font-user-message')]"
   response_xpath: "//div[contains(@class, 'font-claude-message')]"
-  chat_list_xpath: "//li[contains(@class, 'relative group')]"
-  model_xpath: "//button[@data-testid='model-selector-dropdown']/div[1]/div[2]"
+  chat_list_xpath: "//div[contains(@class, 'relative group')]"
+  model_xpath: "//button[@data-testid='model-selector-dropdown']"
   models_menu_xpath: "//button[@data-testid='model-selector-dropdown']"
+  more_models_xpath: "//div[@role='menuitem' and @aria-haspopup='menu']"
+  models_xpath: "//div[@role='menuitem' and @data-radix-collection-item]"
+  models:
+    "sonnet": 
+      name: "Claude 3.5 Sonnet"
+      description: "Most intelligent model"
+    "sonnet_legacy":
+      name: "Claude 3.5 Sonnet (June 2024)"
+      description: "Legacy model"
+    "haiku":
+      name: "Claude 3.5 Haiku"
+      description: "Fastest model for daily tasks"
+    "opus":
+      name: "Claude 3 Opus"
+      description: "Excels at writing and complex tasks"
