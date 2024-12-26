@@ -18,17 +18,27 @@ chatgpt:
   url: "https://chatgpt.com/"
   chat_base_url: "https://chatgpt.com/c/"
   support_models: [""]
-  input_xpath: "//textarea[@id='prompt-textarea']"
+  input_xpath: "//div[@id='prompt-textarea']"
   file_xpath: "//input[@type='file']"
   send_button_xpath: "//button[@data-testid='send-button']"
   stop_button_xpath: "//button[@data-testid='stop-button']"
+  audio_button_xpath: "//button[@data-testid='composer-speech-button']"
   prompt_xpath: "//div[@data-message-author-role='user']"
   response_xpath: "//div[@data-message-author-role='assistant']"
   chat_list_xpath: "//div[@data-testid='conversation-turn']"
-  model_xpath: "//div[@aria-haspopup='menu' and contains(@id, 'radix-')]"
+  model_xpath: "(//button[@data-testid='model-switcher-dropdown-button'])[2]"
   models_menu_xpath: "//div[@data-side='bottom' and @data-align='start' and @role='menu' and @aria-orientation='vertical' and @data-state='open']"
+  more_models_xpath: "//div[@data-testid='more-models-submenu' and @role='menuitem']"
   menu_items_relative_xpath: ".//div[@role='menuitem']"
-  sidebar_xpath: "//*[@id='__next']/div[1]/div[1]/div/div/div/nav/div[2]"
+  sidebar_xpath: "//div[@class='group/sidebar']"
+  models:
+    "gpt-4o": "//div[@data-testid='model-switcher-gpt-4o' and @role='menuitem']"
+    "o1": "//div[@data-testid='model-switcher-o1' and @role='menuitem']"
+    "o1-mini": "//div[@data-testid='model-switcher-o1-mini' and @role='menuitem']"
+    "o1-pro": "//div[@data-testid='model-switcher-o1-pro' and @role='menuitem']"
+    "gpt-4o-mini": "//div[@data-testid='model-switcher-gpt-4o-mini' and @role='menuitem']"
+    "gpt-4": "//div[@data-testid='model-switcher-gpt-4' and @role='menuitem']"
+    
 
 claude:
   url: "https://claude.ai/"

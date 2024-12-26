@@ -1,0 +1,4 @@
+pyyaml
+selenium
+undetected-chromedriver
+fake-useragent

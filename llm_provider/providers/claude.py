@@ -3,7 +3,7 @@ import re
 import time
 from urllib.parse import urljoin
 from typing import Dict, Any, List
-from ..base import BaseLLMProvider
+from .base import BaseLLMProvider
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
