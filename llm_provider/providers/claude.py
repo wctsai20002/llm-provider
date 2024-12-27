@@ -77,7 +77,7 @@ class ClaudeProvider(BaseLLMProvider):
                 })
         
         self.browser.driver.get(original_url)
-        self.browser.add_random_delay(3, 5)
+        self.browser.random_delay(10, 30)
 
         return chats
 
@@ -85,7 +85,7 @@ class ClaudeProvider(BaseLLMProvider):
         try:
             chat_url = urljoin(self.config['chat_base_url'], chat_id)
             self.browser.driver.get(chat_url)
-            self.browser.add_random_delay(3, 5)
+            self.browser.random_delay(10, 30)
             return True
         except:
             return False
@@ -124,7 +124,7 @@ class ClaudeProvider(BaseLLMProvider):
                     print('Failed to click model selector')
                     return False
             
-            self.browser.add_random_delay(1, 1.5)
+            self.browser.random_delay(2, 5)
 
             more_models = self.browser.find_element(self.config['more_models_xpath'])
             if not more_models:
@@ -134,7 +134,7 @@ class ClaudeProvider(BaseLLMProvider):
             actions = ActionChains(self.browser.driver)
             actions.move_to_element(more_models).perform()
 
-            self.browser.add_random_delay(1, 2)
+            self.browser.random_delay(2, 5)
                 
             return True
             
@@ -176,12 +176,12 @@ class ClaudeProvider(BaseLLMProvider):
             return False
             
         model_element.click()
-        self.browser.add_random_delay(3, 5)
+        self.browser.random_delay(5, 7)
 
         current_model = self.get_current_model()
 
         self.hide_models_menu()
-        self.browser.add_random_delay(3, 5)
+        self.browser.random_delay(3, 5)
 
         return model_name == current_model
     

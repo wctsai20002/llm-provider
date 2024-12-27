@@ -46,9 +46,7 @@ class SoraDirector(BaseDirectorProvider):
             
             # Click the button
             click_status = self.browser.click_element(full_xpath)
-            print('before delay')
-            self.browser.add_random_delay(5, 7)
-            print('after delay')
+            self.browser.random_delay(3, 7)
 
             if not click_status:
                 print(f'No button found matching any of texts: {possible_texts}')
@@ -74,7 +72,7 @@ class SoraDirector(BaseDirectorProvider):
             for option in options:
                 if option_text in option.text:
                     option.click()
-                    self.browser.add_random_delay(3, 5)
+                    self.browser.random_delay(3, 7)
                     return True
 
             print(f'Option not found: {option_text}')
@@ -162,7 +160,7 @@ class SoraDirector(BaseDirectorProvider):
                 try:
                     # Click the menu button
                     menu_button.click()
-                    self.browser.add_random_delay(3, 6)
+                    self.browser.random_delay(3, 5)
                     
                     # Find and click the Download menu item
                     download_menu = self.browser.find_element("//div[@role='menuitem'][.//div[text()='Download']]")
@@ -172,11 +170,11 @@ class SoraDirector(BaseDirectorProvider):
                         
                     # First hover over the download menu
                     self.browser.driver.execute_script("arguments[0].dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));", download_menu)
-                    self.browser.add_random_delay(2, 3)
+                    self.browser.random_delay(3, 5)
                     
                     # Then click it
                     download_menu.click()
-                    self.browser.add_random_delay(2, 3)
+                    self.browser.random_delay(3, 5)
                     
                     # Find and click the Video menu item
                     video_menu = self.browser.find_element("//div[@role='menuitem'][.//div[text()='Video']]")
@@ -185,7 +183,7 @@ class SoraDirector(BaseDirectorProvider):
                         continue
                         
                     video_menu.click()
-                    self.browser.add_random_delay(3, 5)
+                    self.browser.random_delay(5, 10)
                     
                     # Find and click the final download button
                     download_button = self.browser.find_element("//button[.//text()='Download']")
@@ -194,7 +192,7 @@ class SoraDirector(BaseDirectorProvider):
                         continue
                         
                     download_button.click()
-                    self.browser.add_random_delay(30, 60)
+                    self.browser.random_delay(30, 60)
                     
                 except Exception as e:
                     print(f"Error downloading video: {e}")

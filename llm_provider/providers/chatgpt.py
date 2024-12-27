@@ -59,7 +59,7 @@ class ChatGPTProvider(BaseLLMProvider):
                 if textdoc_button:
                     textdoc_button.click()
                     # Add a small delay to allow the section to load
-                    self.browser.add_random_delay(3, 7)
+                    self.browser.random_delay(3, 7)
             except Exception as e:
                 print(f"Error clicking textdoc button: {e}")
                 return response_dict
@@ -211,13 +211,13 @@ class ChatGPTProvider(BaseLLMProvider):
                 return False
             
             # Add random delay
-            self.browser.add_random_delay(1, 1.5)
+            self.browser.random_delay(1.5, 3.5)
             
             if not self.browser.click_element(self.config['more_models_xpath']):
                 print("Failed to click more models")
                 return False
 
-            self.browser.add_random_delay(0.3, 0.6)
+            self.browser.random_delay(1.5, 3.5)
                 
             return True
             

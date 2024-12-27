@@ -1,3 +1,4 @@
+import time
 import json
 import random
 from selenium import webdriver
@@ -202,10 +203,18 @@ class ChromeBrowser(BaseBrowser):
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--disable-popup-blocking')
     
-    def add_random_delay(self, min_delay: float = 0.5, max_delay: float = 3.0):
+    def random_time_delay(self, min_delay: float = 0.5, max_delay: float = 3.0):
+        delay = random.uniform(min_delay, max_delay)
+        time.sleep(delay)
+
+    def random_implicitly_delay(self, min_delay: float = 0.5, max_delay: float = 3.0):
         delay = random.uniform(min_delay, max_delay)
         self.driver.implicitly_wait(delay)
-    
+
+    def random_delay(self, time_delay: float, implicitly_delay: float):
+        self.random_time_delay(time_delay)
+        self.random_implicitly_delay(implicitly_delay)
+
     def move_mouse_randomly(self):
         """Simulate random mouse movements."""
         script = """
@@ -230,7 +239,7 @@ class ChromeBrowser(BaseBrowser):
     
     def wait_for_element(self, by: By, value: str, timeout: int = 10):
         """Wait for element with random delay to simulate human behavior."""
-        self.add_random_delay(0.5, 2.0)
+        self.random_implicitly_delay(1.0, 3.0)
         return WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located((by, value))
         )
