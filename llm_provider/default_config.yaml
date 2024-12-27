@@ -2,7 +2,7 @@ chrome:
   use_undetected: true
   load_profile: true
   user_data_dir: ""  # If empty, will use default
-  profile_directory: "Default"  # Default value, can be customized
+  profile_directory: ""  # Default value, can be customized
 
 firefox:
   load_profile: true
@@ -38,7 +38,17 @@ chatgpt:
     "o1-pro": "//div[@data-testid='model-switcher-o1-pro' and @role='menuitem']"
     "gpt-4o-mini": "//div[@data-testid='model-switcher-gpt-4o-mini' and @role='menuitem']"
     "gpt-4": "//div[@data-testid='model-switcher-gpt-4' and @role='menuitem']"
-    
+
+sora:
+  url: "https://sora.com/library"
+  video_base_url: "https://sora.com/g"
+  input_xpath: "//textarea[@placeholder='Describe your video...']"
+  general_button_xpath: "//button[@type='button' and @role='combobox' and @aria-autocomplete='none' and @dir='ltr']"
+  aspect_ratios: ["16:9", "1:1", "9:16"]
+  resolutions: ["480p", "720p", "1080p"]
+  durations: ["5s", "10s", "15s", "20s"]
+  variations: ["1v", "2v", "4v"]
+  create_button_xpath: "//button[.//span[text()='Create video']]"
 
 claude:
   url: "https://claude.ai/"
