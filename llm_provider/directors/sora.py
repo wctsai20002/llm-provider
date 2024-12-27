@@ -1,3 +1,5 @@
+import time
+from urllib.parse import urljoin
 from typing import Dict, Any, List
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,6 +12,7 @@ class SoraDirector(BaseDirectorProvider):
     def __init__(self, browser: BaseBrowser, config: Dict[str, Any]):
         super().__init__(browser, config)
         self.browser.driver.get(self.config['url'])
+        self.browser.random_time_delay(10, 15)
 
     def create_video(self, message: str) -> bool:
         try:
@@ -140,66 +143,80 @@ class SoraDirector(BaseDirectorProvider):
             variation_str = variation_str.replace('v', ' videos')
 
         return self._select_option_from_popup(variation_str)
-
+    
     def download_videos(self) -> bool:
         """Download all generated videos"""
+        original_url = self.browser.driver.current_url
+        max_wait_time = 300  # 5 minutes maximum wait time
+
         try:
             # Find the video container div
-            video_container = self.browser.find_element("//div[@data-index='1']")
+            video_container = self.browser.find_element(self.config['latest_video_container_xpath'])
             if not video_container:
-                print("Video container not found")
+                print('Video container not found')
                 return False
+            
+            
+            start_time = time.time()
+            while time.time() - start_time < max_wait_time:
+                # Get all video hrefs
+                video_links = video_container.find_elements(By.XPATH, self.config['video_href_xpath'])
+                if not video_links:
+                    print('No video links found')
+                    return False
+                    
+                # Extract unique video IDs
+                video_urls = set()
+                for link in video_links:
+                    href = link.get_attribute('href')
+                    if href and '/g/' in href:
+                        full_url = urljoin(self.config['video_base_url'], href.split('/g/')[-1])
+                        video_urls.add(full_url)
                 
-            # Find all video buttons (3-dot menu buttons)
-            menu_buttons = video_container.find_elements(By.XPATH, ".//button[@aria-haspopup='menu']")
-            if not menu_buttons:
-                print("No video menu buttons found")
-                return False
-                
-            for menu_button in menu_buttons:
+                if not video_urls:
+                    # Check if we're still within wait time
+                    if time.time() - start_time >= max_wait_time:
+                        print('Timeout waiting for videos to generate')
+                        return False
+                        
+                    print('No videos ready yet, waiting 30 seconds...')
+                    self.browser.random_time_delay(30, 30)
+                    continue
+                else:
+                    # print(f'Found {len(video_urls)} unique videos to download')
+                    break
+            
+            # Process each video URL
+            for url in video_urls:
                 try:
-                    # Click the menu button
-                    menu_button.click()
-                    self.browser.random_delay(3, 5)
+                    # Navigate to video page
+                    self.browser.driver.get(url)
+                    self.browser.random_delay(30, 10)
                     
-                    # Find and click the Download menu item
-                    download_menu = self.browser.find_element("//div[@role='menuitem'][.//div[text()='Download']]")
-                    if not download_menu:
-                        print("Download menu item not found")
-                        continue
-                        
-                    # First hover over the download menu
-                    self.browser.driver.execute_script("arguments[0].dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));", download_menu)
-                    self.browser.random_delay(3, 5)
-                    
-                    # Then click it
-                    download_menu.click()
-                    self.browser.random_delay(3, 5)
-                    
-                    # Find and click the Video menu item
-                    video_menu = self.browser.find_element("//div[@role='menuitem'][.//div[text()='Video']]")
-                    if not video_menu:
-                        print("Video menu item not found")
-                        continue
-                        
-                    video_menu.click()
-                    self.browser.random_delay(5, 10)
-                    
-                    # Find and click the final download button
-                    download_button = self.browser.find_element("//button[.//text()='Download']")
-                    if not download_button:
-                        print("Final download button not found")
-                        continue
-                        
+                    # Click download button
+                    download_button = self.browser.find_element(self.config['first_download_xpath'], 10, wait_type='clickable')
                     download_button.click()
-                    self.browser.random_delay(30, 60)
+                    self.browser.random_delay(5, 7)
+                    
+                    # Find and click Video option in dropdown
+                    video_option = self.browser.find_element(self.config['download_option_xpath'], 10, wait_type='clickable')
+                    video_option.click()
+                    self.browser.random_delay(15, 15)
+                    
+                    # Click final download button
+                    final_download = self.browser.find_element(self.config['second_download_xpath'], 10, wait_type='clickable')
+                    final_download.click()
+                    self.browser.random_delay(15, 15)
                     
                 except Exception as e:
-                    print(f"Error downloading video: {e}")
+                    print(f'Error downloading video {url}: {e}')
                     continue
-                    
+
+            self.browser.driver.get(original_url)
+            self.browser.random_delay(15, 30)
+
             return True
             
         except Exception as e:
-            print(f"Error in download_videos: {e}")
+            print(f'Error in download_videos: {e}')
             return False

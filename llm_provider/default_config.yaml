@@ -40,8 +40,8 @@ chatgpt:
     "gpt-4": "//div[@data-testid='model-switcher-gpt-4' and @role='menuitem']"
 
 sora:
-  url: "https://sora.com/library"
-  video_base_url: "https://sora.com/g"
+  url: "https://sora.com/library/"
+  video_base_url: "https://sora.com/g/"
   input_xpath: "//textarea[@placeholder='Describe your video...']"
   general_button_xpath: "//button[@type='button' and @role='combobox' and @aria-autocomplete='none' and @dir='ltr']"
   aspect_ratios: ["16:9", "1:1", "9:16"]
@@ -49,6 +49,11 @@ sora:
   durations: ["5s", "10s", "15s", "20s"]
   variations: ["1v", "2v", "4v"]
   create_button_xpath: "//button[.//span[text()='Create video']]"
+  latest_video_container_xpath: "//div[@data-index='1']"
+  video_href_xpath: ".//a[contains(@href, '/g/')]"
+  first_download_xpath: "//button[@aria-haspopup='menu' and .//span[normalize-space(text())='Download']]"
+  second_download_xpath: "//button[normalize-space(text())='Download' and not(.//span)]"
+  download_option_xpath: "//div[@data-side='bottom']//div[@role='menuitem'][.//div[text()='Video' and not(following-sibling::div[contains(text(), 'Watermark')])]]"
 
 claude:
   url: "https://claude.ai/"
