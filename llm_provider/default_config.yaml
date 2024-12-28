@@ -53,7 +53,7 @@ sora:
   video_href_xpath: ".//a[contains(@href, '/g/')]"
   first_download_xpath: "//button[@aria-haspopup='menu' and .//span[normalize-space(text())='Download']]"
   second_download_xpath: "//button[normalize-space(text())='Download' and not(.//span)]"
-  download_option_xpath: "//div[@data-side='bottom']//div[@role='menuitem'][.//div[text()='Video' and not(following-sibling::div[contains(text(), 'Watermark')])]]"
+  download_option_xpath: "//div[@data-side='bottom']//div[@role='menuitem'][div[text()='Video']]"
 
 claude:
   url: "https://claude.ai/"
