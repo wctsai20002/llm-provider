@@ -313,7 +313,7 @@ class ChatGPTProvider(BaseLLMProvider):
                 else:
                     if self.check_audio_button_status(timeout=1):
                         return True
-                self.random_time_delay(interval)
+                self.browser.random_time_delay(interval)
         return False
     
     def check_send_button_status(self, timeout=10):
