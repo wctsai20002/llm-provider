@@ -31,6 +31,9 @@ chatgpt:
   more_models_xpath: "//div[@data-testid='more-models-submenu' and @role='menuitem']"
   menu_items_relative_xpath: ".//div[@role='menuitem']"
   sidebar_xpath: "//div[@class='group/sidebar']"
+  canvas_button_xpath: "//div[@role='button' and starts-with(@id, 'textdoc-message')]"
+  canvas_title_xpath: "//header//h2"
+  canvas_container_xpath: "//div[@id='prosemirror-editor-container']"
   models:
     "gpt-4o": "//div[@data-testid='model-switcher-gpt-4o' and @role='menuitem']"
     "o1": "//div[@data-testid='model-switcher-o1' and @role='menuitem']"
