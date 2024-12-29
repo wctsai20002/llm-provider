@@ -15,8 +15,34 @@ class ChatGPTProvider(BaseLLMProvider):
         super().__init__(browser, config)
         self.browser.driver.get(self.config['url'])
         self.latest_response_id = None
+    
+    def preprocess_prompt(self, message: str) -> str:
+        newlines = [
+            '\r\n',     # Carriage Return + Line Feed (Windows)
+            '\n\r',     # Line Feed + Carriage Return (uncommon)
+            '\v\n',     # Vertical Tab + Line Feed
+            '\n\v',     # Line Feed + Vertical Tab
+            '\f\n',     # Form Feed + Line Feed
+            '\n\f',     # Line Feed + Form Feed
+            '\v',       # Vertical Tab (\x0B)
+            '\f',       # Form Feed (\x0C)
+            '\n',       # Line Feed (\x0A) (Unix)
+            '\r',       # Carriage Return (\x0D) (Mac OS before X)
+            '\u2028',   # Line Separator
+            '\u2029',   # Paragraph Separator
+            '\u0085'    # Next Line (NEL)
+        ]
+        newlines.sort(key=len, reverse=True)
+        
+        result = message
+        for nl in newlines:
+            # Add space before and after the newline character(s)
+            result = result.replace(nl, f' {nl} ')
+        
+        return result
 
     def send_message(self, message: str, delay: int = 10) -> bool:
+        message = self.preprocess_prompt(message)
         send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=True)
         self.browser.random_delay(delay, delay)
         click_status = self.browser.click_element(self.config['send_button_xpath'], timeout=30)
