@@ -271,6 +271,7 @@ class ChatGPTProvider(BaseLLMProvider):
             return False
         
         self.hide_models_menu()
+        self.browser.random_delay(5, 5)
 
         return True
     
