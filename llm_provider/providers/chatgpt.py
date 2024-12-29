@@ -56,22 +56,22 @@ class ChatGPTProvider(BaseLLMProvider):
         if sibling_button:
             # First look for and click the textdoc button
             try:
-                textdoc_button = self.browser.find_element("//div[@role='button' and starts-with(@id, 'textdoc-message')]")
+                textdoc_button = self.browser.find_element(self.confg['canvas_button_xpath'])
                 if textdoc_button:
                     textdoc_button.click()
                     # Add a small delay to allow the section to load
                     self.browser.random_delay(3, 7)
             except Exception as e:
-                print(f"Error clicking textdoc button: {e}")
+                print(f'Error clicking textdoc button: {e}')
                 return response_dict
             
             # Find the editor container by ID
-            header_title = self.browser.find_element("//header//h2").text.strip()
-            editor_container = self.browser.find_element("//div[@id='prosemirror-editor-container']")
+            header_title = self.browser.find_element(self.confg['canvas_title_xpath']).text.strip()
+            editor_container = self.browser.find_element(self.confg['canvas_container_xpath'])
 
             if editor_container:
                 # Initialize content list with header
-                canvas_content = [f"# {header_title}\n"]
+                canvas_content = [f'# {header_title}\n']
                 
                 # Get all markdown content elements
                 editor = editor_container.find_element(By.CLASS_NAME, 'ProseMirror')
@@ -82,7 +82,7 @@ class ChatGPTProvider(BaseLLMProvider):
                         header_text = element.text.strip()
                         if header_text:
                             level = int(element.tag_name[1])  # Get header level
-                            canvas_content.append(f"\n{'#' * level} {header_text}\n")
+                            canvas_content.append(f'\n{"#" * level} {header_text}\n')
                             
                     elif element.tag_name == 'p':
                         para_text = element.text.strip()
@@ -95,7 +95,7 @@ class ChatGPTProvider(BaseLLMProvider):
                             canvas_content.append(f"- {li_text}\n")
                             
                     elif element.tag_name == 'hr':
-                        canvas_content.append("\n---\n")
+                        canvas_content.append('\n---\n')
                         
                     elif element.tag_name == 'ul':
                         # Add extra newline before lists for proper markdown formatting
@@ -122,16 +122,16 @@ class ChatGPTProvider(BaseLLMProvider):
             return chats
 
         # Reset scroll position
-        self.browser.driver.execute_script("arguments[0].scrollTop = 0;", sidebar)
+        self.browser.driver.execute_script('arguments[0].scrollTop = 0;', sidebar)
         time.sleep(0.3)
 
         # Scroll to load all chats
         while True:
-            self.browser.driver.execute_script("arguments[0].scrollTop += arguments[1];", sidebar, 1000)
+            self.browser.driver.execute_script('arguments[0].scrollTop += arguments[1];', sidebar, 1000)
             time.sleep(0.5)
-            scroll_height = self.browser.driver.execute_script("return arguments[0].scrollHeight;", sidebar)
-            client_height = self.browser.driver.execute_script("return arguments[0].clientHeight;", sidebar)
-            scroll_position = self.browser.driver.execute_script("return arguments[0].scrollTop;", sidebar)
+            scroll_height = self.browser.driver.execute_script('return arguments[0].scrollHeight;', sidebar)
+            client_height = self.browser.driver.execute_script('return arguments[0].clientHeight;', sidebar)
+            scroll_position = self.browser.driver.execute_script('return arguments[0].scrollTop;', sidebar)
             
             if abs((scroll_height - client_height) - scroll_position) <= 5:
                 break
@@ -144,7 +144,7 @@ class ChatGPTProvider(BaseLLMProvider):
                 url = a_element.get_attribute('href') if a_element else None
                 title = li.text
                 
-                pattern = rf"{self.config['chat_base_url']}([^/]+)$"
+                pattern = rf'{self.config["chat_base_url"]}([^/]+)$'
                 match = re.search(pattern, url)
 
                 if match:
@@ -155,7 +155,7 @@ class ChatGPTProvider(BaseLLMProvider):
                         'chat_id': chat_id
                     })
             except Exception as e:
-                print(f"Error processing chat element: {e}")
+                print(f'Error processing chat element: {e}')
                 continue
         
         return chats
@@ -166,28 +166,28 @@ class ChatGPTProvider(BaseLLMProvider):
             self.browser.driver.get(chat_url)
             return True
         except Exception as e:
-            print(f"Error selecting chat: {e}")
+            print(f'Error selecting chat: {e}')
             return False
 
     def hide_models_menu(self) -> bool:
         try:
             model_selector = self.browser.find_element(self.config['model_xpath'])
             if not model_selector:
-                print("Model selector not found")
+                print('Model selector not found')
                 return False
             
             # Check if menu is opened via aria-expanded attribute
             is_expanded = model_selector.get_attribute('aria-expanded') == 'true'
             if is_expanded:
                 if not self.browser.click_element(self.config['model_xpath']):
-                    print("Failed to close model selector")
+                    print('Failed to close model selector')
                     return False
                 return True
             
             return True  # Already closed, no action needed
             
         except Exception as e:
-            print(f"Error hiding models menu: {e}")
+            print(f'Error hiding models menu: {e}')
             return False
 
     def open_models_menu(self) -> bool:
@@ -195,35 +195,37 @@ class ChatGPTProvider(BaseLLMProvider):
             # Find model selector button
             model_selector = self.browser.find_element(self.config['model_xpath'])
             if not model_selector:
-                print("Model selector not found")
+                print('Model selector not found')
                 return False
             
+            self.browser.random_delay(2.5, 5.5)
+
             # Check if menu is already opened
             is_expanded = model_selector.get_attribute('aria-expanded') == 'true'
             if not is_expanded:
                 if not self.browser.click_element(self.config['model_xpath']):
-                    print("Failed to click model selector")
+                    print('Failed to click model selector')
                     return False
             
             # Click more models
             more_models = self.browser.find_element(self.config['more_models_xpath'])
             if not more_models:
-                print("More models element not found")
+                print('More models element not found')
                 return False
             
             # Add random delay
-            self.browser.random_delay(1.5, 3.5)
+            self.browser.random_delay(2.5, 5.5)
             
             if not self.browser.click_element(self.config['more_models_xpath']):
                 print("Failed to click more models")
                 return False
 
-            self.browser.random_delay(1.5, 3.5)
+            self.browser.random_delay(2.5, 5.5)
                 
             return True
             
         except Exception as e:
-            print(f"Error opening models menu: {e}")
+            print(f'Error opening models menu: {e}')
             return False
 
     def get_current_model(self) -> Optional[str]:
@@ -242,13 +244,13 @@ class ChatGPTProvider(BaseLLMProvider):
                         if svg_elements:
                             return model_name
                 except Exception as e:
-                    print(f"Error checking model {model_name}: {e}")
+                    print(f'Error checking model {model_name}: {e}')
                     continue
 
             return None
             
         except Exception as e:
-            print(f"Error getting current model: {e}")
+            print(f'Error getting current model: {e}')
             return None
 
         finally:
@@ -256,7 +258,7 @@ class ChatGPTProvider(BaseLLMProvider):
 
     def select_model(self, model_name: str) -> bool:
         if model_name not in self.config['models']:
-            print(f"Model {model_name} not found in supported models")
+            print(f'Model {model_name} not found in supported models')
             return False
         
         if not self.open_models_menu():
@@ -265,7 +267,7 @@ class ChatGPTProvider(BaseLLMProvider):
         model_xpath = self.config['models'][model_name]
         
         if not self.browser.click_element(model_xpath):
-            print(f"Failed to select model {model_name}")
+            print(f'Failed to select model {model_name}')
             return False
         
         self.hide_models_menu()
@@ -276,7 +278,7 @@ class ChatGPTProvider(BaseLLMProvider):
         status = self.check_llm_response_status()
         if status:
             start_time = time.time()
-            prev_response = ""
+            prev_response = ''
             while time.time() - start_time < timeout:
                 response = self.get_response()['chat']
                 if response != prev_response:
@@ -321,7 +323,7 @@ class ChatGPTProvider(BaseLLMProvider):
             file_input.send_keys(path)
             return True
         except Exception as e:
-            print(f"Error uploading file: {e}")
+            print(f'Error uploading file: {e}')
             return False
     
     def wait_for_upload_completion(self, timeout: int = 600) -> bool:
