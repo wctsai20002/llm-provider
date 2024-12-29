@@ -275,7 +275,7 @@ class ChatGPTProvider(BaseLLMProvider):
 
         return True
     
-    def wait_for_response_completion(self, timeout: int = 300) -> bool:
+    def wait_for_response_completion(self, timeout: int = 300, interval: int = 3) -> bool:
         status = self.check_llm_response_status()
         if status:
             start_time = time.time()
@@ -287,7 +287,7 @@ class ChatGPTProvider(BaseLLMProvider):
                 else:
                     if self.check_audio_button_status(timeout=1):
                         return True
-                time.sleep(0.3)
+                self.random_time_delay(interval)
         return False
     
     def check_send_button_status(self, timeout=10):
