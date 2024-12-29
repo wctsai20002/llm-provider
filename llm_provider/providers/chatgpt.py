@@ -16,9 +16,10 @@ class ChatGPTProvider(BaseLLMProvider):
         self.browser.driver.get(self.config['url'])
         self.latest_response_id = None
 
-    def send_message(self, message: str) -> bool:
+    def send_message(self, message: str, delay: int = 10) -> bool:
         send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=True)
-        click_status = self.browser.click_element(self.config['send_button_xpath'])
+        self.browser.random_delay(delay, delay)
+        click_status = self.browser.click_element(self.config['send_button_xpath'], timeout=30)
         return send_status and click_status
 
     def stop_generating(self, interval: int = 0.5, attempts: int = 2) -> bool:
