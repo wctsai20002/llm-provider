@@ -174,74 +174,63 @@ class SoraDirector(BaseDirectorProvider):
         """Download all generated videos"""
         original_url = self.browser.driver.current_url
 
-        try:
-            # Find the video container div
-            video_container = self.browser.find_element(self.config['latest_video_container_xpath'])
-            if not video_container:
-                print('Video container not found')
-                return False
-            
-            
-            start_time = time.time()
-            while time.time() - start_time < max_wait_time:
-                # Get all video hrefs
-                video_links = video_container.find_elements(By.XPATH, self.config['video_href_xpath'])
-                if not video_links:
-                    print('No video links found')
-                    continue
-                    
-                # Extract unique video IDs
-                video_urls = set()
-                for link in video_links:
-                    href = link.get_attribute('href')
-                    if href and '/g/' in href:
-                        full_url = urljoin(self.config['video_base_url'], href.split('/g/')[-1])
-                        video_urls.add(full_url)
-                
-                if not video_urls:
-                    # Check if we're still within wait time
-                    if time.time() - start_time >= max_wait_time:
-                        print('Timeout waiting for videos to generate')
-                        return False
-                        
-                    print('No videos ready yet, waiting 30 seconds...')
-                    self.browser.random_time_delay(30, 30)
-                    continue
-                else:
-                    # print(f'Found {len(video_urls)} unique videos to download')
-                    break
-            
-            # Process each video URL
-            for url in video_urls:
-                try:
-                    # Navigate to video page
-                    self.browser.driver.get(url)
-                    self.browser.random_delay(30, 15)
-                    
-                    # Click download button
-                    download_button = self.browser.find_element(self.config['first_download_xpath'], 10, wait_type='clickable')
-                    download_button.click()
-                    self.browser.random_delay(10, 15)
-                    
-                    # Find and click Video option in dropdown
-                    video_option = self.browser.find_element(self.config['download_option_xpath'], 10, wait_type='clickable')
-                    video_option.click()
-                    self.browser.random_delay(15, 15)
-                    
-                    # Click final download button
-                    final_download = self.browser.find_element(self.config['second_download_xpath'], 10, wait_type='clickable')
-                    final_download.click()
-                    self.browser.random_delay(15, 15)
-                    
-                except Exception as e:
-                    print(f'Error downloading video {url}: {e}')
-                    continue
-
-            self.browser.driver.get(original_url)
-            self.browser.random_delay(15, 30)
-
-            return True
-            
-        except Exception as e:
-            print(f'Error in download_videos: {e}')
+        # Find the video container div
+        video_container = self.browser.find_element(self.config['latest_video_container_xpath'])
+        if not video_container:
+            print('Video container not found')
             return False
+        
+        start_time = time.time()
+        while time.time() - start_time < max_wait_time:
+            # Get all video hrefs
+            video_links = video_container.find_elements(By.XPATH, self.config['video_href_xpath'])
+            if not video_links:
+                print('No video links found')
+                continue
+                
+            # Extract unique video IDs
+            video_urls = set()
+            for link in video_links:
+                href = link.get_attribute('href')
+                if href and '/g/' in href:
+                    full_url = urljoin(self.config['video_base_url'], href.split('/g/')[-1])
+                    video_urls.add(full_url)
+            
+            if not video_urls:
+                # Check if we're still within wait time
+                if time.time() - start_time >= max_wait_time:
+                    print('Timeout waiting for videos to generate')
+                    return False
+                    
+                print('No videos ready yet, waiting 30 seconds...')
+                self.browser.random_time_delay(30, 30)
+                continue
+            else:
+                # print(f'Found {len(video_urls)} unique videos to download')
+                break
+        
+        # Process each video URL
+        for url in video_urls:
+            # Navigate to video page
+            self.browser.driver.get(url)
+            self.browser.random_delay(30, 15)
+            
+            # Click download button
+            download_button = self.browser.find_element(self.config['first_download_xpath'], 10, wait_type='clickable')
+            download_button.click()
+            self.browser.random_delay(10, 15)
+            
+            # Find and click Video option in dropdown
+            video_option = self.browser.find_element(self.config['download_option_xpath'], 10, wait_type='clickable')
+            video_option.click()
+            self.browser.random_delay(15, 15)
+            
+            # Click final download button
+            final_download = self.browser.find_element(self.config['second_download_xpath'], 10, wait_type='clickable')
+            final_download.click()
+            self.browser.random_delay(15, 15)
+
+        self.browser.driver.get(original_url)
+        self.browser.random_delay(15, 30)
+
+        return True
