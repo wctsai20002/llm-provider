@@ -16,7 +16,7 @@ class ChatGPTProvider(BaseLLMProvider):
         self.browser.driver.get(self.config['url'])
         self.latest_response_id = None
     
-    def preprocess_prompt(self, message: str) -> str:
+    def preprocess_prompt(self, message: str) -> list:
         newlines = [
             '\r\n',     # Carriage Return + Line Feed (Windows)
             '\n\r',     # Line Feed + Carriage Return (uncommon)
@@ -36,17 +36,34 @@ class ChatGPTProvider(BaseLLMProvider):
         
         result = message
         for nl in newlines:
-            # Add space before and after the newline character(s)
-            result = result.replace(nl, f' {nl} ')
-        
-        return result
+            result = result.replace(nl, '\n')
+        result_list = [s for s in result.split('\n') if s]
+
+        return result_list
 
     def send_message(self, message: str, delay: int = 10) -> bool:
-        message = self.preprocess_prompt(message)
         send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=True)
         self.browser.random_delay(delay, delay)
         click_status = self.browser.click_element(self.config['send_button_xpath'], timeout=30)
         return send_status and click_status
+
+    def send_message_safely(self, message: str, delay: int = 10, interval: int=5) -> bool:
+        _ = self.browser.send_keys(self.config['input_xpath'], '', clear_first=True)
+
+        messages = self.preprocess_prompt(message)
+        for message in messages:
+            send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=False)
+            self.browser.random_delay(interval, interval)
+            newline_status = self.browser.send_keys(self.config['input_xpath'], (Keys.SHIFT + Keys.ENTER), clear_first=False)
+            self.browser.random_delay(interval, interval)
+
+            if not (send_status and newline_status):
+                return False
+        
+        self.browser.random_delay(delay, delay)
+        click_status = self.browser.click_element(self.config['send_button_xpath'], timeout=30)
+        return click_status
+
 
     def stop_generating(self, interval: int = 0.5, attempts: int = 2) -> bool:
         for _ in range(attempts):
