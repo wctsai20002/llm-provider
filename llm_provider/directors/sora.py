@@ -170,10 +170,9 @@ class SoraDirector(BaseDirectorProvider):
 
         return self._select_option_from_popup(variation_str)
     
-    def download_videos(self) -> bool:
+    def download_videos(self, max_wait_time: int = 600) -> bool:
         """Download all generated videos"""
         original_url = self.browser.driver.current_url
-        max_wait_time = 300  # 5 minutes maximum wait time
 
         try:
             # Find the video container div
@@ -217,12 +216,12 @@ class SoraDirector(BaseDirectorProvider):
                 try:
                     # Navigate to video page
                     self.browser.driver.get(url)
-                    self.browser.random_delay(30, 10)
+                    self.browser.random_delay(30, 15)
                     
                     # Click download button
                     download_button = self.browser.find_element(self.config['first_download_xpath'], 10, wait_type='clickable')
                     download_button.click()
-                    self.browser.random_delay(5, 7)
+                    self.browser.random_delay(10, 15)
                     
                     # Find and click Video option in dropdown
                     video_option = self.browser.find_element(self.config['download_option_xpath'], 10, wait_type='clickable')
