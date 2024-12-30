@@ -37,7 +37,7 @@ class ChatGPTProvider(BaseLLMProvider):
         result = message
         for nl in newlines:
             result = result.replace(nl, '\n')
-        result_list = [s for s in result.split('\n') if s]
+        result_list = [ele for ele in result.split('\n')]
 
         return result_list
 
