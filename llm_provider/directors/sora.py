@@ -2,17 +2,19 @@ import time
 from urllib.parse import urljoin
 from typing import Dict, Any, List
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from .base import BaseDirectorProvider
 from ..browsers.base import BaseBrowser
+from ..utils.preprocessing import preprocess_prompt
 
 class SoraDirector(BaseDirectorProvider):
     def __init__(self, browser: BaseBrowser, config: Dict[str, Any]):
         super().__init__(browser, config)
         self.browser.driver.get(self.config['url'])
-        self.browser.random_time_delay(10, 15)
+        self.browser.random_time_delay(15, 25)
 
     def create_video(self, message: str) -> bool:
         try:
@@ -37,6 +39,30 @@ class SoraDirector(BaseDirectorProvider):
         except Exception as e:
             print(f'Error creating video: {e}')
             return False
+
+    def create_video_safely(self, message: str, delay: int = 10, interval: int=5) -> bool:
+        # Send the prompt message to the input field
+        _ = self.browser.send_keys(self.config['input_xpath'], '', clear_first=True)
+
+        messages = preprocess_prompt(message)
+        for message in messages:
+            send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=False)
+            self.browser.random_delay(interval, interval)
+            newline_status = self.browser.send_keys(self.config['input_xpath'], (Keys.SHIFT + Keys.ENTER), clear_first=False)
+            self.browser.random_delay(interval, interval)
+
+            if not (send_status and newline_status):
+                print('Failed to send message to input field')
+                return False
+        
+        self.browser.random_delay(delay, delay)
+        # Click the general button
+        click_status = self.browser.click_element(self.config['create_button_xpath'])
+        if not click_status:
+            print('Failed to click general button')
+            return False
+
+        return True
 
     def _click_general_button_by_text(self, possible_texts: list) -> bool:
         """Helper method to click general button using list of possible text values"""

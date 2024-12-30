@@ -9,37 +9,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from ..utils.preprocessing import preprocess_prompt
 
 class ChatGPTProvider(BaseLLMProvider):
     def __init__(self, browser: BaseBrowser, config: Dict[str, Any]):
         super().__init__(browser, config)
         self.browser.driver.get(self.config['url'])
         self.latest_response_id = None
-    
-    def preprocess_prompt(self, message: str) -> list:
-        newlines = [
-            '\r\n',     # Carriage Return + Line Feed (Windows)
-            '\n\r',     # Line Feed + Carriage Return (uncommon)
-            '\v\n',     # Vertical Tab + Line Feed
-            '\n\v',     # Line Feed + Vertical Tab
-            '\f\n',     # Form Feed + Line Feed
-            '\n\f',     # Line Feed + Form Feed
-            '\v',       # Vertical Tab (\x0B)
-            '\f',       # Form Feed (\x0C)
-            '\n',       # Line Feed (\x0A) (Unix)
-            '\r',       # Carriage Return (\x0D) (Mac OS before X)
-            '\u2028',   # Line Separator
-            '\u2029',   # Paragraph Separator
-            '\u0085'    # Next Line (NEL)
-        ]
-        newlines.sort(key=len, reverse=True)
-        
-        result = message
-        for nl in newlines:
-            result = result.replace(nl, '\n')
-        result_list = [ele for ele in result.split('\n')]
-
-        return result_list
+        self.browser.random_time_delay(15, 25)
 
     def send_message(self, message: str, delay: int = 10) -> bool:
         send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=True)
@@ -50,7 +27,7 @@ class ChatGPTProvider(BaseLLMProvider):
     def send_message_safely(self, message: str, delay: int = 10, interval: int=5) -> bool:
         _ = self.browser.send_keys(self.config['input_xpath'], '', clear_first=True)
 
-        messages = self.preprocess_prompt(message)
+        messages = preprocess_prompt(message)
         for message in messages:
             send_status = self.browser.send_keys(self.config['input_xpath'], message, clear_first=False)
             self.browser.random_delay(interval, interval)
