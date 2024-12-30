@@ -183,6 +183,7 @@ class SoraDirector(BaseDirectorProvider):
         start_time = time.time()
         while time.time() - start_time < max_wait_time:
             # Get all video hrefs
+            video_container = self.browser.find_element(self.config['latest_video_container_xpath'])
             video_links = video_container.find_elements(By.XPATH, self.config['video_href_xpath'])
             if not video_links:
                 print('No video links found')
