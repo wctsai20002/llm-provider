@@ -186,7 +186,6 @@ class SoraDirector(BaseDirectorProvider):
             video_links = video_container.find_elements(By.XPATH, self.config['video_href_xpath'])
             if not video_links:
                 print('No video links found')
-                continue
                 
             # Extract unique video IDs
             video_urls = set()
