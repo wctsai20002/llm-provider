@@ -121,7 +121,7 @@ class ChatGPTProvider(BaseLLMProvider):
 
                 response_dict['canvas']['html'] = html_content
                 response_dict['canvas']['text'] = soup.text
-                response_dict['canvas']['markdown'] = md(clean_html(html_content))
+                response_dict['canvas']['markdown'] = md(clean_html_gpt(html_content))
         
         return response_dict
 

@@ -25,7 +25,7 @@ def preprocess_prompt(message: str) -> list:
 
     return result_list
 
-def clean_html(html_content):
+def clean_html_gpt(html_content):
     """
     Clean HTML by removing specific elements:
     1. Remove Copy buttons within pre.!overflow-visible
@@ -57,6 +57,46 @@ def clean_html(html_content):
                 first_grandson_div = first_child_div.find('div', recursive=False)
                 if first_grandson_div:
                     first_grandson_div.decompose()
+        except AttributeError:
+            continue
+    
+    # Return the cleaned HTML
+    return str(soup)
+
+def clean_html_claude(html_content):
+    """
+    Clean HTML by removing specific elements:
+    1. Remove the first div grandson of pre (pre > div > div)
+    2. Remove button elements under pre
+    
+    Args:
+        html_content (str): Input HTML string
+    
+    Returns:
+        str: Cleaned HTML string
+    """
+    # Parse HTML
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    # Find all pre elements
+    pre_elements = soup.find_all('pre')
+    
+    for pre in pre_elements:
+        # Remove the first div grandson
+        try:
+            first_child_div = pre.find('div', recursive=False)
+            if first_child_div:
+                first_grandson_div = first_child_div.find('div', recursive=False)
+                if first_grandson_div:
+                    first_grandson_div.decompose()
+        except AttributeError:
+            continue
+            
+        # Remove button elements
+        try:
+            buttons = pre.find_all('button', recursive=True)
+            for button in buttons:
+                button.decompose()
         except AttributeError:
             continue
     
