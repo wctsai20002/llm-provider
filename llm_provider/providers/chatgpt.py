@@ -9,7 +9,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from ..utils.preprocessing import preprocess_prompt
+from markdownify import markdownify as md
+from bs4 import BeautifulSoup
+from ..utils.preprocessing import *
 
 class ChatGPTProvider(BaseLLMProvider):
     def __init__(self, browser: BaseBrowser, config: Dict[str, Any]):
@@ -51,8 +53,16 @@ class ChatGPTProvider(BaseLLMProvider):
 
     def get_response(self) -> dict:
         response_dict = {
-            'chat': None,
-            'canvas': None
+            'chat': {
+                'html': None,
+                'text': None,
+                'markdown': None
+            }, 
+            'canvas': {
+                'html': None,
+                'text': None,
+                'markdown': None
+            }
         }
         
         # Find all response elements
@@ -62,7 +72,9 @@ class ChatGPTProvider(BaseLLMProvider):
             
         # Get the latest response element
         latest_response = responses[-1]
-        response_dict['chat'] = latest_response.text
+        response_dict['chat']['html'] = latest_response.get_attribute('outerHTML')
+        response_dict['chat']['text'] = latest_response.text
+        response_dict['chat']['markdown'] = md(clean_html(response_dict['chat']['html']))
         
         # Get the parent element to check for canvas indicators
         parent_element = latest_response.find_element(By.XPATH, '..')
@@ -76,7 +88,7 @@ class ChatGPTProvider(BaseLLMProvider):
         if sibling_button:
             # First look for and click the textdoc button
             try:
-                textdoc_button = self.browser.find_element(self.confg['canvas_button_xpath'])
+                textdoc_button = self.browser.find_element(self.config['canvas_button_xpath'])
                 if textdoc_button:
                     textdoc_button.click()
                     # Add a small delay to allow the section to load
@@ -86,48 +98,30 @@ class ChatGPTProvider(BaseLLMProvider):
                 return response_dict
             
             # Find the editor container by ID
-            header_title = self.browser.find_element(self.confg['canvas_title_xpath']).text.strip()
-            editor_container = self.browser.find_element(self.confg['canvas_container_xpath'])
+            header_title = self.browser.find_element(self.config['canvas_title_xpath']).text.strip()
 
-            if editor_container:
-                # Initialize content list with header
-                canvas_content = [f'# {header_title}\n']
+            code_canvas_container = self.browser.find_element(self.config['code_canvas_xpath'])
+            text_canvas_container = self.browser.find_element(self.config['text_canvas_xpath'])
+
+            if code_canvas_container:
+                code_language = code_canvas_container.get_attribute('data-language')
+                response_dict['canvas']['html'] = code_canvas_container.get_attribute('outerHTML')
+                response_dict['canvas']['text'] = code_canvas_container.text
+                response_dict['canvas']['markdown'] = f'```{code_language}\n{code_canvas_container.text}\n```'
+            elif text_canvas_container:
+                html_content = text_canvas_container.get_attribute('outerHTML')
+                soup = BeautifulSoup(html_content, 'html.parser')
+                target_span = soup.find('span', {
+                    'contenteditable': 'false',
+                    'style': 'position: absolute;'
+                })
+                if target_span and target_span.parent:
+                    target_span.parent.decompose()
                 
-                # Get all markdown content elements
-                editor = editor_container.find_element(By.CLASS_NAME, 'ProseMirror')
-                
-                # Process each content element maintaining proper markdown structure
-                for element in editor.find_elements(By.XPATH, './/*'):
-                    if element.tag_name in ['h3', 'h4', 'h5', 'h6']:
-                        header_text = element.text.strip()
-                        if header_text:
-                            level = int(element.tag_name[1])  # Get header level
-                            canvas_content.append(f'\n{"#" * level} {header_text}\n')
-                            
-                    elif element.tag_name == 'p':
-                        para_text = element.text.strip()
-                        if para_text:
-                            canvas_content.append(f"{para_text}\n")
-                            
-                    elif element.tag_name == 'li':
-                        li_text = element.text.strip()
-                        if li_text:
-                            canvas_content.append(f"- {li_text}\n")
-                            
-                    elif element.tag_name == 'hr':
-                        canvas_content.append('\n---\n')
-                        
-                    elif element.tag_name == 'ul':
-                        # Add extra newline before lists for proper markdown formatting
-                        if canvas_content and not canvas_content[-1].endswith('\n\n'):
-                            canvas_content.append('\n')
-                
-                # Join all content and clean up extra newlines
-                if canvas_content:
-                    full_content = ''.join(canvas_content)
-                    # Clean up multiple newlines
-                    cleaned_content = '\n'.join(line for line in full_content.split('\n') if line.strip())
-                    response_dict['canvas'] = cleaned_content
+                html_content = str(soup)
+                response_dict['canvas']['html'] = html_content
+                response_dict['canvas']['text'] = text_canvas_container.text
+                response_dict['canvas']['markdown'] = md(clean_html(html_content))
         
         return response_dict
 
@@ -301,7 +295,7 @@ class ChatGPTProvider(BaseLLMProvider):
             start_time = time.time()
             prev_response = ''
             while time.time() - start_time < timeout:
-                response = self.get_response()['chat']
+                response = self.get_response()['chat']['text']
                 if response != prev_response:
                     prev_response = response
                 else:

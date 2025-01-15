@@ -33,7 +33,10 @@ chatgpt:
   sidebar_xpath: "//div[@class='group/sidebar']"
   canvas_button_xpath: "//div[@role='button' and starts-with(@id, 'textdoc-message')]"
   canvas_title_xpath: "//header//h2"
-  canvas_container_xpath: "//div[@id='prosemirror-editor-container']"
+  canvas_container_xpath: "//div[@id='codemirror' or @id='prosemirror-editor-container']"
+  canvas_content_xpath: "//div[@id='codemirror' or @id='prosemirror-editor-container']//div[@translate='no']"
+  code_canvas_xpath: "//div[@id='codemirror']//div[@translate='no']"
+  text_canvas_xpath: "//div[@id='prosemirror-editor-container']/div[@translate='no']"
   models:
     "gpt-4o": "//div[@data-testid='model-switcher-gpt-4o' and @role='menuitem']"
     "o1": "//div[@data-testid='model-switcher-o1' and @role='menuitem']"
