@@ -10,6 +10,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from markdownify import markdownify as md
+from bs4 import BeautifulSoup
+from ..utils.preprocessing import *
 
 class ClaudeProvider(BaseLLMProvider):
     def __init__(self, browser: BaseBrowser, config: Dict[str, Any]):
@@ -30,11 +33,77 @@ class ClaudeProvider(BaseLLMProvider):
                 time.sleep(interval)
         return False
 
-    def get_response(self) -> str:
+    def get_response(self) -> dict:
+        response_dict = {
+            'chat': {
+                'html': None,
+                'text': None,
+                'markdown': None
+            }, 
+            'artifact': [
+                {
+                    'html': None,
+                    'text': None,
+                    'markdown': None
+                }
+            ]
+        }
+
         responses = self.browser.find_elements(self.config['response_xpath'])
-        if responses:
-            return responses[-1].text
-        return ""
+        if not responses:
+            return response_dict
+        
+        # Get the latest response element
+        latest_response = responses[-1]
+        html_content = latest_response.get_attribute('outerHTML')
+        soup = BeautifulSoup(html_content, 'html.parser')
+        target_span = soup.find('button', {
+            'aria-label': 'Preview contents'
+        })
+        if target_span and target_span.parent:
+            target_span.parent.decompose()
+        html_content = str(soup)
+
+        response_dict['chat']['html'] = html_content
+        response_dict['chat']['text'] = soup.text
+        response_dict['chat']['markdown'] = md(clean_html_claude(response_dict['chat']['html']))
+
+        try:
+            artifact_buttons = latest_response.find_elements(By.XPATH, self.config['artifact_button_xpath'])
+        except:
+            artifact_buttons = None
+        
+        if artifact_buttons:
+            for artifact_index, artifact_button in enumerate(artifact_buttons):
+                try:
+                    if artifact_button:
+                        artifact_button.click()
+                        self.browser.random_delay(7, 10)
+                except Exception as e:
+                    print(f'Error clicking textdoc button: {e}')
+                    continue
+                
+                code_artifact = self.browser.find_element(self.config['code_artifact_xpath'])
+                if code_artifact:
+                    code_language = code_artifact.get_attribute('class').replace('language-', '')
+                    response_dict['artifact'][artifact_index]['html'] = code_artifact.get_attribute('outerHTML')
+                    response_dict['artifact'][artifact_index]['text'] = code_artifact.text
+                    response_dict['artifact'][artifact_index]['markdown'] =f'```{code_language}\n{code_artifact.text}\n```'
+                    continue
+
+                text_artifact = self.browser.find_element(self.config['text_artifact_xpath'])
+                if text_artifact:
+                    response_dict['artifact'][artifact_index]['html'] = text_artifact.get_attribute('outerHTML')
+                    response_dict['artifact'][artifact_index]['text'] = text_artifact.text
+                    response_dict['artifact'][artifact_index]['markdown'] = md(response_dict['chat']['html'])
+                    continue
+
+                iframe_artifact = self.browser.find_element(self.config['iframe_artifact_xpath'])
+                if iframe_artifact:
+                    print('Unsupported iframe artifact!')
+                    continue
+        
+        return response_dict
 
     def get_responses(self) -> str:
         responses = self.browser.find_elements(self.config['response_xpath'])
@@ -168,9 +237,13 @@ class ClaudeProvider(BaseLLMProvider):
             return False
             
         # XPath that matches both the model name and description
-        xpath = f'//div[@role="menuitem"]//div[contains(text(), "{model_info["name"]}")]/../following-sibling::div[contains(text(), "{model_info["description"]}")]/..'
-        
-        model_element = self.browser.find_element(xpath)
+        # xpath = f'//div[@role="menuitem"]//div[contains(text(), "{model_info["name"]}")]/../following-sibling::div[contains(text(), "{model_info["description"]}")]/..'
+        model_xpath = self.config['claude']['model_xpath'].format(
+            name=model_info['name'],
+            description=model_info['description']
+        )
+
+        model_element = self.browser.find_element(model_xpath)
         if not model_element:
             print(f'Model element not found for {model_name}')
             return False

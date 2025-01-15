@@ -72,12 +72,17 @@ claude:
   stop_button_xpath: "//button[@aria-label='Stop Response']"
   file_button_xpath: "//button[@aria-label='Upload content']"
   prompt_xpath: "//div[contains(@class, 'font-user-message')]"
-  response_xpath: "//div[contains(@class, 'font-claude-message')]"
+  response_xpath: "//div[@data-is-streaming='false']/div[contains(@class, 'font-claude-message')]"
   chat_list_xpath: "//div[contains(@class, 'relative group')]"
   model_xpath: "//button[@data-testid='model-selector-dropdown']"
   models_menu_xpath: "//button[@data-testid='model-selector-dropdown']"
   more_models_xpath: "//div[@role='menuitem' and @aria-haspopup='menu']"
   models_xpath: "//div[@role='menuitem' and @data-radix-collection-item]"
+  model_xpath: "//div[@role='menuitem']//div[contains(text(), '{name}')]/../following-sibling::div[contains(text(), '{description}')]/.."
+  artifact_button_xpath: "//button[@aria-label='Preview contents']"
+  iframe_artifact_xpath: "/html/body/div[3]/div/div/div[2]/div[2]/div[2]/div/div/div/div[2]/div/iframe"
+  text_artifact_xpath: "/html/body/div[3]/div/div/div[2]/div[2]/div[2]/div/div/div/div[3]/div/div[contains(@class, 'font-claude-message')]"
+  code_artifact_xpath: "/html/body/div[3]/div/div/div[2]/div[2]/div[2]/div/div/div/div[3]/div/div/code"
   models:
     "sonnet": 
       name: "Claude 3.5 Sonnet"
