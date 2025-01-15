@@ -74,7 +74,7 @@ class ChatGPTProvider(BaseLLMProvider):
         latest_response = responses[-1]
         response_dict['chat']['html'] = latest_response.get_attribute('outerHTML')
         response_dict['chat']['text'] = latest_response.text
-        response_dict['chat']['markdown'] = md(clean_html(response_dict['chat']['html']))
+        response_dict['chat']['markdown'] = md(clean_html_gpt(response_dict['chat']['html']))
         
         # Get the parent element to check for canvas indicators
         parent_element = latest_response.find_element(By.XPATH, '..')
