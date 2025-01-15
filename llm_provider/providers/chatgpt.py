@@ -117,10 +117,10 @@ class ChatGPTProvider(BaseLLMProvider):
                 })
                 if target_span and target_span.parent:
                     target_span.parent.decompose()
-                
                 html_content = str(soup)
+
                 response_dict['canvas']['html'] = html_content
-                response_dict['canvas']['text'] = text_canvas_container.text
+                response_dict['canvas']['text'] = soup.text
                 response_dict['canvas']['markdown'] = md(clean_html(html_content))
         
         return response_dict
