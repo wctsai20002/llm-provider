@@ -41,11 +41,7 @@ class ClaudeProvider(BaseLLMProvider):
                 'markdown': None
             }, 
             'artifact': [
-                {
-                    'html': None,
-                    'text': None,
-                    'markdown': None
-                }
+
             ]
         }
 
@@ -67,6 +63,9 @@ class ClaudeProvider(BaseLLMProvider):
         response_dict['chat']['html'] = html_content
         response_dict['chat']['text'] = soup.text
         response_dict['chat']['markdown'] = md(clean_html_claude(response_dict['chat']['html']))
+        
+        if not self.config['artifact_button_xpath'].startswith('.'):
+            self.config['artifact_button_xpath'] = f".{self.config['artifact_button_xpath']}"
 
         try:
             artifact_buttons = latest_response.find_elements(By.XPATH, self.config['artifact_button_xpath'])
@@ -74,40 +73,59 @@ class ClaudeProvider(BaseLLMProvider):
             artifact_buttons = None
         
         if artifact_buttons:
-            for artifact_index, artifact_button in enumerate(artifact_buttons):
+            for artifact_index in range(len(artifact_buttons)):
+                artifact_buttons = latest_response.find_elements(By.XPATH, self.config['artifact_button_xpath'])
+                if artifact_index >= len(artifact_buttons):
+                    continue
+                artifact_button = artifact_buttons[artifact_index]
+
                 try:
                     if artifact_button:
+                        self.browser.driver.execute_script('arguments[0].scrollIntoView(true);', artifact_button)
+                        self.browser.random_delay(3, 5)
                         artifact_button.click()
-                        self.browser.random_delay(7, 10)
+                        self.browser.random_delay(5, 10)
                 except Exception as e:
                     print(f'Error clicking textdoc button: {e}')
                     continue
                 
+                artifact_response = {
+                    'html': None,
+                    'text': None,
+                    'markdown': None
+                }
+
                 code_artifact = self.browser.find_element(self.config['code_artifact_xpath'])
                 if code_artifact:
                     code_language = code_artifact.get_attribute('class').replace('language-', '')
-                    response_dict['artifact'][artifact_index]['html'] = code_artifact.get_attribute('outerHTML')
-                    response_dict['artifact'][artifact_index]['text'] = code_artifact.text
-                    response_dict['artifact'][artifact_index]['markdown'] =f'```{code_language}\n{code_artifact.text}\n```'
+                    artifact_response['html'] = code_artifact.get_attribute('outerHTML')
+                    artifact_response['text'] = code_artifact.get_attribute('innerText')
+                    artifact_response['markdown'] = f'```{code_language}\n{artifact_response["text"]}\n```'
+                    response_dict['artifact'].append(artifact_response)
                     continue
 
                 text_artifact = self.browser.find_element(self.config['text_artifact_xpath'])
                 if text_artifact:
-                    response_dict['artifact'][artifact_index]['html'] = text_artifact.get_attribute('outerHTML')
-                    response_dict['artifact'][artifact_index]['text'] = text_artifact.text
-                    response_dict['artifact'][artifact_index]['markdown'] = md(response_dict['chat']['html'])
+                    artifact_response['html'] = text_artifact.get_attribute('outerHTML')
+                    artifact_response['text'] = text_artifact.get_attribute('innerText')
+                    artifact_response['markdown'] = md(artifact_response['html'])
+                    response_dict['artifact'].append(artifact_response)
                     continue
 
                 iframe_artifact = self.browser.find_element(self.config['iframe_artifact_xpath'])
                 if iframe_artifact:
                     print('Unsupported iframe artifact!')
+                    # artifact_response['html'] = iframe_artifact.get_attribute('outerHTML')
+                    # artifact_response['text'] = iframe_artifact.get_attribute('innerText')
+                    # artifact_response['markdown'] = md(artifact_response['html'])
+                    # response_dict['artifact'].append(artifact_response)
                     continue
         
         return response_dict
 
     def get_responses(self) -> str:
         responses = self.browser.find_elements(self.config['response_xpath'])
-        return [response.text for response in responses]
+        return [response.get_attribute('innerText') for response in responses]
 
     def list_chats(self) -> list:
         original_url = self.browser.driver.current_url
@@ -132,7 +150,7 @@ class ClaudeProvider(BaseLLMProvider):
             url = a_element.get_attribute('href') if a_element else None
 
             div_element = a_element.find_element(By.XPATH, './div/div[1]')
-            title = div_element.text
+            title = div_element.get_attribute('innerText')
 
             pattern = rf"{self.config['chat_base_url']}([^/]+)$"
             match = re.search(pattern, url)
@@ -216,7 +234,7 @@ class ClaudeProvider(BaseLLMProvider):
         if not model_element:
             return ''
             
-        current_text = model_element.text
+        current_text = model_element.get_attribute('innerText')
         current_text = current_text.replace('Claude ', '').strip()
         
         for key, model_info in self.config['models'].items():
@@ -237,7 +255,6 @@ class ClaudeProvider(BaseLLMProvider):
             return False
             
         # XPath that matches both the model name and description
-        # xpath = f'//div[@role="menuitem"]//div[contains(text(), "{model_info["name"]}")]/../following-sibling::div[contains(text(), "{model_info["description"]}")]/..'
         model_xpath = self.config['claude']['model_xpath'].format(
             name=model_info['name'],
             description=model_info['description']
@@ -297,7 +314,7 @@ class ClaudeProvider(BaseLLMProvider):
                     is_streaming = parent_div.get_attribute('data-is-streaming')
                     
                     # Use the response content and streaming status as the identifier
-                    response_text = latest_response.text
+                    response_text = latest_response.get_attribute('innerText')
                     current_id = f'{response_text}_{is_streaming}'
                     
                     # Compare with stored latest response ID
