@@ -47,6 +47,7 @@ chatgpt:
 
 sora:
   url: "https://sora.com/library/"
+  prefix: "https://sora.com/"
   video_base_url: "https://sora.com/g/"
   input_xpath: "//textarea[@placeholder='Describe your video...']"
   general_button_xpath: "//button[@type='button' and @role='combobox' and @aria-autocomplete='none' and @dir='ltr']"
@@ -56,10 +57,16 @@ sora:
   variations: ["1v", "2v", "4v"]
   create_button_xpath: "//button[.//span[text()='Create video']]"
   latest_video_container_xpath: "//div[@data-index='1']"
-  video_href_xpath: ".//a[contains(@href, '/g/')]"
+  video_href_xpath: ".//a[contains(@href, '/g/') or contains(@href, '/t/task')]"
   first_download_xpath: "//button[@aria-haspopup='menu' and .//span[normalize-space(text())='Download']]"
   second_download_xpath: "//button[normalize-space(text())='Download' and not(.//span)]"
   download_option_xpath: "//div[@data-side='bottom']//div[@role='menuitem'][div[text()='Video']]"
+  improve_div_xpath: ".//div[text()='Pick the best videos from this set to help improve Sora']"
+  improve_confirm_xpath: "//button[text()='Got it']"
+  pick_left_video_xpath: "/html/body/div[2]/div/div[1]/div/div/div[1]/div[1]/div/div[2]"
+  keep_selected_button_xpath: "//button[text()='Keep selected video']"
+  keep_none_button_xpath: "//button[text()='Keep none']"
+  final_none_button_xpath: "//button[text()='Cancel']/following-sibling::button[text()='Keep none']"
 
 claude:
   url: "https://claude.ai/"

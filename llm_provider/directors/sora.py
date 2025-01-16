@@ -170,6 +170,17 @@ class SoraDirector(BaseDirectorProvider):
 
         return self._select_option_from_popup(variation_str)
     
+    def remove_improvement(self, improve_urls: set):
+        for url in improve_urls:
+            self.browser.driver.get(url)
+            self.browser.random_delay(30, 15)
+            self.browser.click_element(self.config['improve_confirm_xpath'])
+            self.browser.random_delay(5, 5)
+            self.browser.click_element(self.config['keep_none_button_xpath'])
+            self.browser.random_delay(5, 5)
+            self.browser.click_element(self.config['final_none_button_xpath'])
+            self.browser.random_delay(15, 20)
+
     def download_videos(self, max_wait_time: int = 600) -> bool:
         """Download all generated videos"""
         original_url = self.browser.driver.current_url
@@ -190,12 +201,20 @@ class SoraDirector(BaseDirectorProvider):
                 
             # Extract unique video IDs
             video_urls = set()
+            improve_urls = set()
             for link in video_links:
                 href = link.get_attribute('href')
+                full_url = urljoin(self.config['prefix'], href)
                 if href and '/g/' in href:
-                    full_url = urljoin(self.config['video_base_url'], href.split('/g/')[-1])
                     video_urls.add(full_url)
+                elif href and '/t/task' in href:
+                    improve_urls.add(full_url)
             
+            if improve_urls:
+                self.remove_improvement(improve_urls)
+                self.browser.random_delay(15, 15)
+                return False
+
             if not video_urls:
                 # Check if we're still within wait time
                 if time.time() - start_time >= max_wait_time:
