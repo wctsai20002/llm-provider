@@ -73,7 +73,7 @@ class ChatGPTProvider(BaseLLMProvider):
         # Get the latest response element
         latest_response = responses[-1]
         response_dict['chat']['html'] = latest_response.get_attribute('outerHTML')
-        response_dict['chat']['text'] = latest_response.text
+        response_dict['chat']['text'] = latest_response.get_attribute('innerText')
         response_dict['chat']['markdown'] = md(clean_html_gpt(response_dict['chat']['html']))
         
         # Get the parent element to check for canvas indicators
@@ -98,7 +98,7 @@ class ChatGPTProvider(BaseLLMProvider):
                 return response_dict
             
             # Find the editor container by ID
-            header_title = self.browser.find_element(self.config['canvas_title_xpath']).text.strip()
+            header_title = self.browser.find_element(self.config['canvas_title_xpath']).get_attribute('innerText').strip()
 
             code_canvas_container = self.browser.find_element(self.config['code_canvas_xpath'])
             text_canvas_container = self.browser.find_element(self.config['text_canvas_xpath'])
@@ -106,8 +106,8 @@ class ChatGPTProvider(BaseLLMProvider):
             if code_canvas_container:
                 code_language = code_canvas_container.get_attribute('data-language')
                 response_dict['canvas']['html'] = code_canvas_container.get_attribute('outerHTML')
-                response_dict['canvas']['text'] = code_canvas_container.text
-                response_dict['canvas']['markdown'] = f'```{code_language}\n{code_canvas_container.text}\n```'
+                response_dict['canvas']['text'] = code_canvas_container.get_attribute('innerText')
+                response_dict['canvas']['markdown'] = f'```{code_language}\n{response_dict["canvas"]["text"]}\n```'
             elif text_canvas_container:
                 html_content = text_canvas_container.get_attribute('outerHTML')
                 soup = BeautifulSoup(html_content, 'html.parser')
@@ -127,7 +127,7 @@ class ChatGPTProvider(BaseLLMProvider):
 
     def get_responses(self) -> List[str]:
         responses = self.browser.find_elements(self.config['response_xpath'])
-        return [response.text for response in responses]
+        return [response.get_attribute('innerText') for response in responses]
     
     def list_chats(self) -> List[Dict[str, Any]]:
         chats = []
@@ -156,7 +156,7 @@ class ChatGPTProvider(BaseLLMProvider):
             try:
                 a_element = li.find_element(By.TAG_NAME, 'a')
                 url = a_element.get_attribute('href') if a_element else None
-                title = li.text
+                title = li.get_attribute('innerText')
                 
                 pattern = rf'{self.config["chat_base_url"]}([^/]+)$'
                 match = re.search(pattern, url)

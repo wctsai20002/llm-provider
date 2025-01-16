@@ -99,7 +99,7 @@ class SoraDirector(BaseDirectorProvider):
             # Find and click the option with matching text
             options = popup.find_elements(By.XPATH, './/div[@role="option"]')
             for option in options:
-                if option_text in option.text:
+                if option_text in option.get_attribute('innerText'):
                     option.click()
                     self.browser.random_delay(3, 7)
                     return True
