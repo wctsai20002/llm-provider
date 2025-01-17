@@ -12,8 +12,8 @@ class EdgeBrowser:
         options = Options()
         
         if self.edge_config.get('load_profile', True):
-            options.add_argument(f"--user-data-dir={self.user_data_dir}")
-            options.add_argument(f"--profile-directory={self.profile_directory}")
+            options.add_argument(f'--user-data-dir={self.user_data_dir}')
+            options.add_argument(f'--profile-directory={self.profile_directory}')
         
         self.driver = webdriver.Edge(options=options)
 

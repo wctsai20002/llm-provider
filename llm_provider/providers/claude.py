@@ -179,7 +179,7 @@ class ClaudeProvider(BaseLLMProvider):
 
     def hide_models_menu(self) -> bool:
         try:
-            model_selector = self.browser.find_element(self.config['model_xpath'])
+            model_selector = self.browser.find_element(self.config['model_button_xpath'])
             if not model_selector:
                 print('Model selector not found')
                 return False
@@ -187,7 +187,7 @@ class ClaudeProvider(BaseLLMProvider):
             # Check if menu is opened via aria-expanded attribute
             is_expanded = model_selector.get_attribute('aria-expanded') == 'true'
             if is_expanded:
-                if not self.browser.click_element(self.config['model_xpath']):
+                if not self.browser.click_element(self.config['model_button_xpath']):
                     print('Failed to close model selector')
                     return False
                 return True
@@ -200,14 +200,14 @@ class ClaudeProvider(BaseLLMProvider):
 
     def open_models_menu(self) -> bool:
         try:
-            model_selector = self.browser.find_element(self.config['model_xpath'])
+            model_selector = self.browser.find_element(self.config['model_button_xpath'])
             if not model_selector:
                 print('Model selector not found')
                 return False
             
             is_expanded = model_selector.get_attribute('aria-expanded') == 'true'
             if not is_expanded:
-                if not self.browser.click_element(self.config['model_xpath']):
+                if not self.browser.click_element(self.config['model_button_xpath']):
                     print('Failed to click model selector')
                     return False
             
@@ -230,7 +230,7 @@ class ClaudeProvider(BaseLLMProvider):
             return False
 
     def get_current_model(self) -> str:
-        model_element = self.browser.find_element(self.config['model_xpath'])
+        model_element = self.browser.find_element(self.config['model_button_xpath'])
         if not model_element:
             return ''
             
@@ -255,7 +255,7 @@ class ClaudeProvider(BaseLLMProvider):
             return False
             
         # XPath that matches both the model name and description
-        model_xpath = self.config['claude']['model_xpath'].format(
+        model_xpath = self.config['model_description_xpath'].format(
             name=model_info['name'],
             description=model_info['description']
         )

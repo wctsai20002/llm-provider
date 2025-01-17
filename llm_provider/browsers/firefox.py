@@ -9,7 +9,7 @@ class FirefoxBrowser:
         profile_path = config.get('profile_path')
         
         if profile_path:
-            options.add_argument(f"-profile {profile_path}")
+            options.add_argument(f'-profile {profile_path}')
         
         self.driver = webdriver.Firefox(options=options)
 
@@ -24,7 +24,7 @@ class FirefoxBrowser:
         options = Options()
         
         if self.firefox_config.get('load_profile', True):
-            options.set_preference("profile", self.user_data_dir)
+            options.set_preference('profile', self.user_data_dir)
         
         self.driver = webdriver.Edge(options=options)
 

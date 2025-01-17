@@ -98,7 +98,8 @@ class SoraDirector(BaseDirectorProvider):
 
             # Find and click the option with matching text
             options = popup.find_elements(By.XPATH, './/div[@role="option"]')
-            for option in options:
+            sorted_options = sorted(options, key=lambda x: len(x.get_attribute('innerText')))
+            for option in sorted_options:
                 if option_text in option.get_attribute('innerText'):
                     option.click()
                     self.browser.random_delay(3, 7)
@@ -170,16 +171,33 @@ class SoraDirector(BaseDirectorProvider):
 
         return self._select_option_from_popup(variation_str)
     
-    def remove_improvement(self, improve_urls: set):
-        for url in improve_urls:
-            self.browser.driver.get(url)
-            self.browser.random_delay(30, 15)
-            self.browser.click_element(self.config['improve_confirm_xpath'])
-            self.browser.random_delay(5, 5)
-            self.browser.click_element(self.config['keep_none_button_xpath'])
-            self.browser.random_delay(5, 5)
-            self.browser.click_element(self.config['final_none_button_xpath'])
-            self.browser.random_delay(15, 20)
+    def check_improvement(self) -> bool:
+        check_xpath = f'{self.config["latest_video_container_xpath"]}//{self.config["improve_div_xpath"].lstrip("./")}'
+        check_element = self.browser.find_element(check_xpath)
+        if check_element:
+            task_xpath = f'{self.config["latest_video_container_xpath"]}//{self.config["task_href_xpath"].lstrip("./")}'
+            task_links = self.browser.find_elements(task_xpath, timeout=30)
+                
+            # Extract unique video IDs
+            task_urls = set()
+            for link in task_links:
+                href = link.get_attribute('href')
+                full_url = urljoin(self.config['prefix'], href)
+                if href:
+                    task_urls.add(full_url)
+
+            for url in task_urls:
+                self.browser.driver.get(url)
+                self.browser.random_delay(30, 15)
+                self.browser.click_element(self.config['improve_confirm_xpath'])
+                self.browser.random_delay(5, 5)
+                self.browser.click_element(self.config['keep_none_button_xpath'])
+                self.browser.random_delay(5, 5)
+                self.browser.click_element(self.config['final_none_button_xpath'])
+                self.browser.random_delay(15, 20)
+            return True
+        else:
+            return False
 
     def download_videos(self, max_wait_time: int = 600) -> bool:
         """Download all generated videos"""
@@ -201,19 +219,11 @@ class SoraDirector(BaseDirectorProvider):
                 
             # Extract unique video IDs
             video_urls = set()
-            improve_urls = set()
             for link in video_links:
                 href = link.get_attribute('href')
                 full_url = urljoin(self.config['prefix'], href)
                 if href and '/g/' in href:
                     video_urls.add(full_url)
-                elif href and '/t/task' in href:
-                    improve_urls.add(full_url)
-            
-            if improve_urls:
-                self.remove_improvement(improve_urls)
-                self.browser.random_delay(15, 15)
-                return False
 
             if not video_urls:
                 # Check if we're still within wait time
@@ -223,6 +233,10 @@ class SoraDirector(BaseDirectorProvider):
                     
                 print('No videos ready yet, waiting 30 seconds...')
                 self.browser.random_time_delay(30, 30)
+
+                if self.check_improvement():
+                    return False
+
                 continue
             else:
                 # print(f'Found {len(video_urls)} unique videos to download')
